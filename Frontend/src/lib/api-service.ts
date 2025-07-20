@@ -66,25 +66,36 @@ export class ApiService {
     return this.fetchWithError<PlatformData[]>(url);
   }
 
-  static async getPlatformStats(platform_id: string): Promise<PlatformData> { // Changed from platformId
-    const url = ApiConfig.getFullUrl(ApiEndpoints.PLATFORM_STATS, { id: platform_id });
+  static async getPlatformById(platformId: string): Promise<PlatformData> {
+    const url = ApiConfig.getFullUrl(ApiEndpoints.PLATFORM_DETAIL, { id: platformId });
     return this.fetchWithError<PlatformData>(url);
   }
 
   // Analytics methods
   static async getAnalyticsSummary(): Promise<AnalyticsSummary> {
-    const url = ApiConfig.getFullUrl(ApiEndpoints.SUMMARY);
+    const url = ApiConfig.getFullUrl(ApiEndpoints.ANALYTICS_SUMMARY);
     return this.fetchWithError<AnalyticsSummary>(url);
   }
 
   static async getGrowthTrends(): Promise<GrowthTrendData[]> {
-    const url = ApiConfig.getFullUrl(ApiEndpoints.GROWTH_TRENDS);
+    const url = ApiConfig.getFullUrl(ApiEndpoints.ANALYTICS_GROWTH_TRENDS);
     return this.fetchWithError<GrowthTrendData[]>(url);
   }
 
   static async getDailyMetrics(): Promise<DailyMetric[]> {
-    const url = ApiConfig.getFullUrl(ApiEndpoints.DAILY_METRICS);
+    const url = ApiConfig.getFullUrl(ApiEndpoints.ANALYTICS_DAILY_METRICS);
     return this.fetchWithError<DailyMetric[]>(url);
+  }
+
+  // Cache management methods
+  static async invalidateCache(): Promise<void> {
+    const url = ApiConfig.getFullUrl(ApiEndpoints.ANALYTICS_INVALIDATE_CACHE);
+    return this.fetchWithError<void>(url, { method: 'POST' });
+  }
+
+  static async forceRefresh(): Promise<void> {
+    const url = ApiConfig.getFullUrl(ApiEndpoints.ANALYTICS_FORCE_REFRESH);
+    return this.fetchWithError<void>(url, { method: 'POST' });
   }
 
   // Utility method for polling data

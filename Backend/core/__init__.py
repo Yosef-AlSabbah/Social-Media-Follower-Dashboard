@@ -1,5 +1,5 @@
 """
-Core application initialization for Rawad Al Furas.
+Core application initialization for Social Follower Dashboard.
 
 This module ensures that Celery is loaded when Django starts.
 """

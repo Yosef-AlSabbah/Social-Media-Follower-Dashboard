@@ -31,25 +31,25 @@ wait_for_service ${POSTGRES_HOST:-rawad_database} ${POSTGRES_PORT:-5432} "Postgr
 # Wait for Redis
 wait_for_service ${REDIS_HOST:-rawad_redis} ${REDIS_PORT:-6379} "Redis Cache"
 
-# Activate virtual environment
-source .venv/bin/activate
-
 echo -e "${YELLOW}📦 Running database migrations...${NC}"
-python manage.py migrate --noinput
+uv run manage.py migrate --noinput
 
 echo -e "${YELLOW}📊 Collecting static files...${NC}"
-python manage.py collectstatic --noinput --clear
+uv run manage.py collectstatic --noinput --clear
 
 echo -e "${YELLOW}👤 Creating superuser if needed...${NC}"
-python manage.py shell << EOF
+uv run manage.py shell << EOF
 from django.contrib.auth import get_user_model
 User = get_user_model()
 if not User.objects.filter(username='admin').exists():
-    User.objects.create_superuser('admin', 'admin@rawad.com', 'admin123')
+    User.objects.create_superuser('admin', 'admin@sfd.com', 'admin123')
     print('Superuser created: admin/admin123')
 else:
     print('Superuser already exists')
 EOF
+
+echo -e "${YELLOW}🔧 Populating FetchScript entries...${NC}"
+uv run manage.py populate_fetch_scripts
 
 echo -e "${GREEN}🎯 Starting application...${NC}"
 

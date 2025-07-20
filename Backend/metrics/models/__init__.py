@@ -5,3 +5,4 @@ __all__ = [
 
 from .other_model import DailyPlatformMetric
 from .platform import Platform
+from .fetch_script import FetchScript

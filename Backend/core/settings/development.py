@@ -24,28 +24,7 @@ DATABASES = {
 }
 
 
-# Redis Settings for Development
-def get_redis_url_dev(db_index: int) -> str:
-    """Generate Redis URL for development environment."""
-    return f"redis://:rawad_dev_redis_password@rawad_redis:6379/{db_index}"
 
-
-# Override Redis configuration for development
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": get_redis_url_dev(db_index=0),
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        },
-        "KEY_PREFIX": "rawad_dev_cache",
-        "TIMEOUT": 60,  # Short timeout for development
-    }
-}
-
-# Celery Settings for Development
-CELERY_BROKER_URL = get_redis_url_dev(db_index=1)
-CELERY_RESULT_BACKEND = get_redis_url_dev(db_index=2)
 CELERY_TASK_ALWAYS_EAGER = False  # Set to True to run tasks synchronously
 CELERY_TASK_EAGER_PROPAGATES = True
 

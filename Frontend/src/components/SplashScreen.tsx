@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import motionWayLogo from '@/assets/motion-way-logo.png';
+import companyLogo from '@/assets/logo.webp';
 
 interface SplashScreenProps {
   onComplete?: () => void;
@@ -39,11 +39,9 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="mb-8"
         >
-          <motion.img
-            src={motionWayLogo}
-            alt="Motion Way Logo"
-            className="w-24 h-24 mx-auto rounded-2xl shadow-2xl"
-            animate={{ 
+          <motion.div
+            className="w-40 h-15 bg-gradient-hero rounded-2xl flex items-center justify-center shadow-glow-accent smooth-transition p-2 mx-auto"
+            animate={{
               boxShadow: [
                 '0 0 20px hsl(var(--accent) / 0.3)',
                 '0 0 40px hsl(var(--primary) / 0.4)',
@@ -51,7 +49,13 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
               ]
             }}
             transition={{ duration: 2, repeat: Infinity }}
-          />
+          >
+            <img
+              src={companyLogo}
+              alt="Company Logo"
+              className="w-full h-full object-contain"
+            />
+          </motion.div>
         </motion.div>
 
         {/* Title animation */}
@@ -61,7 +65,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
           transition={{ duration: 0.8, delay: 0.3 }}
           className="text-4xl font-bold mb-4 bg-gradient-to-r from-foreground via-accent to-primary bg-clip-text text-transparent"
         >
-          Motion Way
+          Block Tech
         </motion.h1>
 
         {/* Subtitle */}

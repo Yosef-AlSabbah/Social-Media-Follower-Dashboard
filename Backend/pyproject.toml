@@ -1,7 +1,7 @@
 [project]
 name = "rawad-al-furas-job-matching-freelance-donation-system-backend"
 version = "0.1.0"
-description = "Rawad Al Furas Job Matching, Freelance & Donation System Backend"
+description = "Social Follower Dashboard Backend"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -14,7 +14,6 @@ dependencies = [
     "django-taggit>=6.1.0",
     "djangorestframework>=3.16.0",
     "djangorestframework-simplejwt>=5.5.0",
-    "djoser>=2.3.1",
     "drf-spectacular>=0.28.0",
     "drf-standardized-responses>=0.1.4",
     "gunicorn>=23.0.0",
@@ -29,6 +28,7 @@ dependencies = [
     "requests>=2.32.4",
     "selenium>=4.34.2",
     "webdriver-manager>=4.0.2",
+    "django-celery-beat>=2.8.1",
 ]
 
 [dependency-groups]

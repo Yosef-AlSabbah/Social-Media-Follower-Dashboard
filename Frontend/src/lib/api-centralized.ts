@@ -4,8 +4,6 @@
  * This file contains all API calls for the application.
  * Each function includes clear documentation about expected backend data format.
  * All API logic is isolated here for easy maintenance and extension.
- *
- * NOTE: All backend data properties use snake_case naming to match Python backend conventions.
  */
 
 import { ApiConfig, ApiEndpoints } from './api-config';
@@ -22,9 +20,9 @@ export interface PlatformData {
 }
 
 export interface AnalyticsSummary {
-  total_followers: number; // Changed from totalFollowers
-  top_platform: string;    // Changed from topPlatform
-  daily_growth: number;    // Changed from dailyGrowth
+  totalFollowers: number;
+  topPlatform: string;
+  dailyGrowth: number;
 }
 
 export interface GrowthTrendData {
@@ -141,8 +139,8 @@ export class CentralizedApiService {
    * Backend should return: Single platform object with detailed metrics
    * Expected format: { id, name, followers, engagement, growth, icon, color, additionalMetrics? }
    */
-  static async getPlatformById(platform_id: string): Promise<PlatformData> { // Changed from platformId
-    const url = ApiConfig.getFullUrl(ApiEndpoints.PLATFORM_STATS, { id: platform_id });
+  static async getPlatformById(platformId: string): Promise<PlatformData> {
+    const url = ApiConfig.getFullUrl(ApiEndpoints.PLATFORM_STATS, { id: platformId });
     return this.request<PlatformData>(url);
   }
 
@@ -153,7 +151,7 @@ export class CentralizedApiService {
   /**
    * Get high-level analytics summary for dashboard
    * Backend should return: Aggregated metrics across all platforms
-   * Expected format: { total_followers: number, top_platform: string, daily_growth: number }
+   * Expected format: { totalFollowers: number, topPlatform: string, dailyGrowth: number }
    */
   static async getAnalyticsSummary(): Promise<AnalyticsSummary> {
     const url = ApiConfig.getFullUrl(ApiEndpoints.SUMMARY);
@@ -170,13 +168,13 @@ export class CentralizedApiService {
    * Expected format: { date: string (ISO), value: number, platform?: string }[]
    */
   static async getGrowthTrends(
-    time_range?: '7d' | '30d' | '90d' | '1y', // Changed from timeRange
-    platform_id?: string                      // Changed from platformId
+    timeRange?: '7d' | '30d' | '90d' | '1y',
+    platformId?: string
   ): Promise<GrowthTrendData[]> {
     const params = new URLSearchParams();
-    if (time_range) params.append('range', time_range);
-    if (platform_id) params.append('platform', platform_id);
-
+    if (timeRange) params.append('range', timeRange);
+    if (platformId) params.append('platform', platformId);
+    
     const url = `${ApiConfig.getFullUrl(ApiEndpoints.GROWTH_TRENDS)}?${params.toString()}`;
     return this.request<GrowthTrendData[]>(url);
   }

@@ -9,11 +9,6 @@ class PlatformSerializer(serializers.ModelSerializer):
     Converts Platform model instances to JSON format and vice versa.
     """
 
-    # expose @property methods as regular fields
-    followers = serializers.IntegerField(source="followers")
-    delta = serializers.IntegerField(source="delta")
-    last_updated = serializers.IntegerField(source="last_updated")
-
     class Meta:
         model = Platform
         fields = (
@@ -39,7 +34,7 @@ class TopPlatformSerializer(serializers.Serializer):
     Used as a nested serializer in analytics summary.
     """
 
-    id = serializers.CharField()
+    id = serializers.UUIDField()
     name = serializers.CharField()
     name_ar = serializers.CharField()
     followers = serializers.IntegerField(min_value=0)
@@ -91,10 +86,7 @@ class GrowthTrendSerializer(serializers.Serializer):
     Serializer for platform growth trend data.
     """
 
-    platform_id = serializers.PrimaryKeyRelatedField(
-        queryset=Platform.objects.all(),
-        help_text="Platform instance reference",
-    )
+    platform_id = serializers.UUIDField(help_text="Platform UUID reference")
     data = DailyDataPointSerializer(many=True, help_text="Array of daily data points")
 
 

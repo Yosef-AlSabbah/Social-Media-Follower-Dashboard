@@ -6,14 +6,28 @@ from fetchers.base import BaseFetcher
 
 
 class TwitterFetcher(BaseFetcher):
-    def __init__(self, platform_url):
+    """Fetcher for Twitter/X platform to extract follower counts."""
+
+    def __init__(self, platform_url: str):
+        """Initialize the Twitter fetcher with the profile URL.
+
+        Args:
+            platform_url: The URL of the Twitter profile
+        """
         self.platform_url = platform_url
 
-    def fetch_followers_count(self):
+    def fetch_followers_count(self) -> int:
+        """Fetch the follower count from a Twitter profile page.
+
+        Returns:
+            The number of followers as an integer
+
+        Raises:
+            ValueError: If the followers count cannot be found or parsed
+        """
         page_source = self._get_page_source_with_browser(self.platform_url)
         soup = BeautifulSoup(page_source, "html.parser")
 
-        # Strategy 1: Find links containing "followers" in the href, including "verified_followers"
         follower_link = soup.find(
             "a", href=re.compile(r"/(verified_)?followers", re.IGNORECASE)
         )
@@ -29,13 +43,25 @@ class TwitterFetcher(BaseFetcher):
                 try:
                     return self._parse_count(count_text)
                 except ValueError:
-                    pass  # Fallback to other strategies if parsing fails
+                    # Fallback to other strategies if parsing fails
+                    pass
+
+        # Try alternative approach if the above method failed
+        follower_count_element = soup.select_one('[data-testid="followersCount"]')
+        if follower_count_element:
+            try:
+                return self._parse_count(follower_count_element.get_text(strip=True))
+            except ValueError:
+                pass
 
         raise ValueError("Could not find followers count on the page for Twitter.")
-
-
-if __name__ == "__main__":
-    # Example usage:
-    twitter_fetcher = TwitterFetcher("https://twitter.com/bloocktecs")
-    print(twitter_fetcher.fetch_followers_count())
-    pass
+#
+#
+# if __name__ == "__main__":
+#     # Example usage:
+#     try:
+#         twitter_fetcher = TwitterFetcher("https://twitter.com/bloocktecs")
+#         follower_count = twitter_fetcher.fetch_followers_count()
+#         print(f"Follower count: {follower_count}")
+#     except Exception as e:
+#         print(f"Error fetching follower count: {e}")

@@ -126,7 +126,7 @@ export function AnalyticsSummary({
                 {stat.title}
               </h3>
             </div>
-            <p className="text-3xl font-bold text-foreground rtl-numbers tracking-tight">
+            <p className={`text-3xl font-bold text-foreground tracking-tight ${index === 1 ? 'top-platform-name' : 'rtl-numbers'}`}>
               {stat.value}
             </p>
           </div>

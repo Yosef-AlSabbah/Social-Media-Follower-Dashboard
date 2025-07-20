@@ -39,9 +39,12 @@ THIRD_PARTY_APPS = [
 # Local apps
 LOCAL_APPS = [
     "metrics",
+    "api",
 ]
 
-INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS + [
+    "django_celery_beat",  # Django Celery Beat
+]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -90,9 +93,6 @@ DATABASES = {
         "PASSWORD": settings.POSTGRES_PASSWORD,
         "HOST": settings.POSTGRES_HOST,
         "PORT": settings.POSTGRES_PORT,
-        "OPTIONS": {
-            "connect_timeout": 60,
-        },
     }
 }
 
@@ -100,14 +100,17 @@ DATABASES = {
 # Redis URL generator
 def get_redis_url(db_index: int) -> str:
     """Generate Redis URL with proper authentication."""
-    return f"redis://:{settings.REDIS_PASSWORD}@{settings.REDIS_HOST}:{settings.REDIS_PORT}/{db_index}"
+    password = getattr(settings, "REDIS_PASSWORD", None)
+    if password:
+        return f"redis://:{password}@{settings.REDIS_HOST}:{settings.REDIS_PORT}/{db_index}"
+    return f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}/{db_index}"
 
 
 # Cache Configuration
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": get_redis_url(db_index=settings.CACHE_DB_INDEX),
+        "LOCATION": get_redis_url(db_index=0),  # Use DB 0 for cache
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "CONNECTION_POOL_KWARGS": {
@@ -129,8 +132,8 @@ SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
 
 # Celery Configuration
-CELERY_BROKER_URL = get_redis_url(db_index=settings.CELERY_BROKER_DB_INDEX)
-CELERY_RESULT_BACKEND = get_redis_url(db_index=settings.CELERY_RESULT_BACKEND_DB_INDEX)
+CELERY_BROKER_URL = get_redis_url(db_index=1)  # Use DB 1 for Celery Broker
+CELERY_RESULT_BACKEND = get_redis_url(db_index=2)  # Use DB 2 for Celery Results
 CELERY_TASK_SERIALIZER = settings.CELERY_TASK_SERIALIZER
 CELERY_RESULT_SERIALIZER = settings.CELERY_RESULT_SERIALIZER
 CELERY_ACCEPT_CONTENT = settings.CELERY_ACCEPT_CONTENT
@@ -141,6 +144,7 @@ CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes
 CELERY_TASK_SOFT_TIME_LIMIT = 25 * 60  # 25 minutes
 CELERY_WORKER_PREFETCH_MULTIPLIER = 4
 CELERY_WORKER_MAX_TASKS_PER_CHILD = 1000
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -201,19 +205,8 @@ PLATFORM_FOLLOWERS_CACHE_TIMEOUT = getattr(
 
 # Django REST Framework Configuration
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-        "rest_framework.authentication.SessionAuthentication",
-    ],
     "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.IsAuthenticated",
-    ],
-    "DEFAULT_PAGINATION_CLASS": "drf_standardized_responses.pagination.StandardPagination",
-    "PAGE_SIZE": 20,
-    "DEFAULT_FILTER_BACKENDS": [
-        "django_filters.rest_framework.DjangoFilterBackend",
-        "rest_framework.filters.SearchFilter",
-        "rest_framework.filters.OrderingFilter",
+        "rest_framework.permissions.AllowAny",
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_RENDERER_CLASSES": [
@@ -244,13 +237,23 @@ SIMPLE_JWT = {
 
 # Spectacular (API Documentation) Settings
 SPECTACULAR_SETTINGS = {
-    "TITLE": "Rawad Al Furas API",
+    "TITLE": "Social Follower Dashboard API",
     "DESCRIPTION": "Job Matching, Freelance & Donation System API",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "SCHEMA_PATH_PREFIX": "/api/",
     "COMPONENT_SPLIT_REQUEST": True,
     "SORT_OPERATIONS": False,
+    "TAGS": [
+        {
+            "name": "Platforms",
+            "description": "Endpoints for managing social media platforms.",
+        },
+        {
+            "name": "Analytics",
+            "description": "Endpoints for retrieving analytics data.",
+        },
+    ],
 }
 
 # Security Settings

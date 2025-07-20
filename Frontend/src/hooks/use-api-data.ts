@@ -1,6 +1,5 @@
-import { useState, useEffect, useCallback, DependencyList } from 'react';
-import { MockApiService } from '@/lib/mock-api';
-import { AnalyticsSummary, GrowthTrendData } from '@/lib/api-centralized';
+import { useState, useEffect, useCallback, useRef, DependencyList } from 'react';
+import { RealApiService, Platform, AnalyticsSummary, GrowthTrend } from '@/lib/real-api-service';
 
 export interface UseApiState<T> {
   data: T | null;
@@ -18,37 +17,65 @@ export function useApiData<T>(
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const pollingRef = useRef<NodeJS.Timeout | null>(null);
+  const mountedRef = useRef(true);
 
   const fetchData = useCallback(async () => {
+    if (!mountedRef.current) return;
+
     try {
       setError(null);
       if (data === null) setLoading(true); // Only show loading on initial fetch
       const result = await apiMethod();
-      setData(result);
+      if (mountedRef.current) {
+        setData(result);
+      }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
-      setError(errorMessage);
-      console.error('API Error:', err);
+      if (mountedRef.current) {
+        const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
+        setError(errorMessage);
+        console.error('API Error:', err);
+      }
     } finally {
-      setLoading(false);
+      if (mountedRef.current) {
+        setLoading(false);
+      }
     }
-  }, [apiMethod, ...dependencies]);
+  }, []); // Remove dependencies to prevent infinite re-creation
 
+  // Initial fetch - only run once
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+  }, []); // Empty dependency array for initial fetch only
 
+  // Polling effect - separate from initial fetch
   useEffect(() => {
-    if (enablePolling && !loading && !error) {
-      const interval = setInterval(() => {
-        if (!loading) {
+    if (enablePolling && !loading && !error && data !== null) {
+      pollingRef.current = setInterval(() => {
+        if (mountedRef.current) {
           fetchData();
         }
       }, pollingInterval);
 
-      return () => clearInterval(interval);
+      return () => {
+        if (pollingRef.current) {
+          clearInterval(pollingRef.current);
+          pollingRef.current = null;
+        }
+      };
     }
-  }, [enablePolling, pollingInterval, loading, error, fetchData]);
+  }, [enablePolling, pollingInterval, loading, error, data]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+    };
+  }, []);
 
   return {
     data,
@@ -60,26 +87,28 @@ export function useApiData<T>(
 
 // Specific hooks for different data types
 export function usePlatformData(enablePolling: boolean = true) {
+  const refreshInterval = RealApiService.getRefreshInterval();
   return useApiData(
-    () => MockApiService.getAllPlatforms(),
+    () => RealApiService.getAllPlatforms(),
     [],
     enablePolling,
-    30000
+    refreshInterval
   );
 }
 
 export function useAnalyticsSummary(enablePolling: boolean = true) {
+  const refreshInterval = RealApiService.getRefreshInterval();
   return useApiData(
-    () => MockApiService.getAnalyticsSummary(),
+    () => RealApiService.getAnalyticsSummary(),
     [],
     enablePolling,
-    60000 // Analytics summary updates less frequently
+    refreshInterval
   );
 }
 
 export function useGrowthTrends() {
   return useApiData(
-    () => MockApiService.getGrowthTrends(),
+    () => RealApiService.getGrowthTrends(),
     [],
     false // Growth trends don't need real-time updates
   );

@@ -75,3 +75,40 @@ class PlatformCacheManager:
         last_updated_key = CacheKey.PLATFORM_LAST_UPDATED.build(name=platform_name)
 
         cache.delete_many([followers_key, delta_key, last_updated_key])
+
+    @classmethod
+    def _create_or_update_daily_metric(cls, platform_name: str, followers: int):
+        """
+        Create or update a DailyPlatformMetric record for today.
+        """
+        from metrics.models import Platform, DailyPlatformMetric
+        from datetime import date
+        import logging
+
+        logger = logging.getLogger(__name__)
+
+        try:
+            platform = Platform.objects.get(name=platform_name)
+            today = date.today()
+
+            # This will create a new record if one doesn't exist for today,
+            # or update the existing one.
+            metric, created = DailyPlatformMetric.objects.update_or_create(
+                platform=platform,
+                date=today,
+                defaults={"followers": followers},
+            )
+
+            if created:
+                logger.info(
+                    f"Created new daily metric for {platform_name} with {followers} followers."
+                )
+            else:
+                logger.info(
+                    f"Updated daily metric for {platform_name} to {followers} followers."
+                )
+
+        except Platform.DoesNotExist:
+            logger.error(f"Platform '{platform_name}' not found in the database.")
+        except Exception as e:
+            logger.error(f"Error creating or updating daily metric for {platform_name}: {e}")

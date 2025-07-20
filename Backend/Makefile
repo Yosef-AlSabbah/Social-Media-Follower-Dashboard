@@ -39,4 +39,4 @@ superuser:
 
 collectstatic:
 	@echo "📁 Collecting static files..."
-	docker-compose -f docker-compose.dev.yml exec rawad_backend python manage.py collectstatic --noinput
+	docker-compose -f docker-compose.dev.yml exec backend python manage.py collectstatic --noinput

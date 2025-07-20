@@ -57,10 +57,10 @@ class Settings(BaseSettings):
     CELERY_ENABLE_UTC: bool = True
 
     # PostgreSQL Database Configuration
-    POSTGRES_NAME: str = "rawad_db"
-    POSTGRES_USER: str = "rawad_user"
-    POSTGRES_PASSWORD: str = "rawad_password_2025"
-    POSTGRES_HOST: str = "rawad_database"
+    POSTGRES_NAME: str = "follower_dashboard"
+    POSTGRES_USER: str = "postgres"
+    POSTGRES_PASSWORD: str = "postgres"
+    POSTGRES_HOST: str = "db"
     POSTGRES_PORT: int = 5432
 
     # File Upload Settings
@@ -78,7 +78,7 @@ class Settings(BaseSettings):
     EMAIL_USE_TLS: bool = True
     EMAIL_HOST_USER: str = ""
     EMAIL_HOST_PASSWORD: str = ""
-    DEFAULT_FROM_EMAIL: str = "noreply@rawad.com"
+    DEFAULT_FROM_EMAIL: str = "yousef@motionway.tv"
 
     PLATFORM_FOLLOWERS_CACHE_TIMEOUT: int = 60 * 30  # 30 minutes
 
@@ -86,5 +86,6 @@ class Settings(BaseSettings):
     LOG_FILE: str = "app.log"  # Default log file name
     LOG_LEVEL: str = "INFO"  # Default log level for the application
     TIME_ZONE: str = "UTC"  # Default timezone for the application
+
 
 settings = Settings()

@@ -56,22 +56,9 @@ urlpatterns = [
     # API root
     path("api/", api_root, name="api_root"),
     # Authentication
-    path(
-        "api/auth/",
-        include(
-            [
-                path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
-                path(
-                    "token/refresh/", TokenRefreshView.as_view(), name="token_refresh"
-                ),
-                path("token/verify/", TokenVerifyView.as_view(), name="token_verify"),
-                path("", include("djoser.urls")),
-                path("", include("djoser.urls.jwt")),
-            ]
-        ),
-    ),
     # API Documentation
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+    path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path(
         "api/docs/",
         SpectacularSwaggerView.as_view(url_name="schema"),
@@ -79,10 +66,7 @@ urlpatterns = [
     ),
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
     # Your app URLs will go here
-    path("api/", include("metrics.urls")),
-    # path("api/jobs/", include("jobs.urls")),
-    # path("api/freelance/", include("freelance.urls")),
-    # path("api/donations/", include("donations.urls")),
+    path("api/", include("api.urls", namespace="api")),
 ]
 
 # Serve media files in development
@@ -100,4 +84,4 @@ if settings.DEBUG:
 # Custom admin configuration
 admin.site.site_header = "Rawad Al Furas Administration"
 admin.site.site_title = "Rawad Al Furas Admin"
-admin.site.index_title = "Welcome to Rawad Al Furas Administration"
+admin.site.index_title = "Welcome to Social Follower Dashboard Administration"

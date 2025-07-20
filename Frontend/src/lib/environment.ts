@@ -1,19 +1,22 @@
 // Environment-specific API configuration
 export const API_ENVIRONMENTS = {
   development: {
-    baseUrl: 'http://localhost:3001/api/v1',
-    timeout: 10000,
-    retryAttempts: 3
+    baseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1',
+    timeout: parseInt(import.meta.env.VITE_API_TIMEOUT) || 30000,
+    retryAttempts: parseInt(import.meta.env.VITE_API_RETRY_ATTEMPTS) || 3,
+    refreshInterval: parseInt(import.meta.env.VITE_REFRESH_INTERVAL) || 1800000 // 30 minutes default
   },
   staging: {
-    baseUrl: 'https://staging-api.social-dashboard.com/v1',
-    timeout: 15000,
-    retryAttempts: 3
+    baseUrl: import.meta.env.VITE_API_BASE_URL || 'https://staging-api.social-dashboard.com/api/v1',
+    timeout: parseInt(import.meta.env.VITE_API_TIMEOUT) || 30000,
+    retryAttempts: parseInt(import.meta.env.VITE_API_RETRY_ATTEMPTS) || 3,
+    refreshInterval: parseInt(import.meta.env.VITE_REFRESH_INTERVAL) || 1800000
   },
   production: {
-    baseUrl: 'https://api.social-dashboard.com/v1',
-    timeout: 20000,
-    retryAttempts: 5
+    baseUrl: import.meta.env.VITE_API_BASE_URL || 'https://api.social-dashboard.com/api/v1',
+    timeout: parseInt(import.meta.env.VITE_API_TIMEOUT) || 30000,
+    retryAttempts: parseInt(import.meta.env.VITE_API_RETRY_ATTEMPTS) || 5,
+    refreshInterval: parseInt(import.meta.env.VITE_REFRESH_INTERVAL) || 1800000
   }
 } as const;
 

@@ -1,5 +1,5 @@
-import developerPhoto from '../assets/developer-photo.jpg'
-import motionWayLogo from '../assets/motion-way-logo.png'
+import developerPhoto from '../assets/developer.png'
+import companyLogo from '../assets/logo.webp'
 
 export function Footer() {
   return (
@@ -17,14 +17,16 @@ export function Footer() {
               />
               <div className="absolute inset-0 rounded-full bg-gradient-to-r from-accent/20 to-secondary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             </div>
-            
+
             {/* Company Logo */}
             <div className="relative group">
-              <img 
-                src={motionWayLogo} 
-                alt="Motion Way Company"
-                className="w-16 h-16 transition-all duration-500 group-hover:scale-110"
-              />
+              <div className="w-40 h-15 bg-gradient-hero rounded-2xl flex items-center justify-center shadow-glow-accent smooth-transition hover:scale-110 hover:shadow-glow-intense p-2">
+                <img
+                  src={companyLogo}
+                  alt="Company Logo"
+                  className="w-full h-full object-contain"
+                />
+              </div>
             </div>
           </div>
           
@@ -33,11 +35,8 @@ export function Footer() {
             <p className="text-lg font-bold bg-gradient-to-r from-accent to-secondary bg-clip-text text-transparent">
               مطور البرمجيات يوسف محمد يوسف السباح
             </p>
-            <p className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              شركة موشن واي
-            </p>
             <p className="text-sm text-muted-foreground">
-              جميع الحقوق محفوظة لشركة موشن واي © 2024
+              جميع الحقوق محفوظة لشركة بلوك تِك © 2025
             </p>
           </div>
         </div>

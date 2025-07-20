@@ -11,10 +11,55 @@ from metrics.models.fetch_script import FetchScript
 class PlatformManager(models.Manager):
     """
     Custom manager for Platform model to filter only active platforms by default.
+    Implements caching to reduce database queries.
     """
+
+    CACHE_KEY = "platform_manager:all_active_platforms"
+    CACHE_TIMEOUT = 60 * 60  # 1 hour
 
     def get_queryset(self):
         return super().get_queryset().filter(is_active=True)
+
+    def get_all(self):
+        """
+        Get all active platforms with caching.
+        Returns a cached queryset of active platforms to reduce database queries.
+        """
+        from django.core.cache import cache
+        from core.utils.logger import logger
+
+        # Try to get platforms from cache first
+        platforms = cache.get(self.CACHE_KEY)
+
+        if platforms is None:
+            # Cache miss, fetch from database
+            logger.debug("Platform cache miss, fetching from database")
+            platforms = list(self.get_queryset())
+            cache.set(self.CACHE_KEY, platforms, self.CACHE_TIMEOUT)
+        else:
+            logger.debug("Platform cache hit, using cached platforms")
+
+        return platforms
+
+    def invalidate_cache(self):
+        """
+        Invalidate the platforms cache.
+        Call this method when platforms are created, updated, or deleted.
+        """
+        from django.core.cache import cache
+        from core.utils.logger import logger
+
+        cache.delete(self.CACHE_KEY)
+        logger.info("Platform cache invalidated")
+
+
+class AllPlatformManager(models.Manager):
+    """
+    Manager for accessing all platforms including inactive ones.
+    """
+
+    def get_queryset(self):
+        return super().get_queryset()
 
 
 class Platform(models.Model):
@@ -84,7 +129,7 @@ class Platform(models.Model):
         ]
         ordering = ("name",)
 
-    # ────────────────────────────────── Properties ──────────────────────────────────
+    # ────────────────────────────────── Properties ��─────────────────────────────────
     @property
     def followers(self):
         """

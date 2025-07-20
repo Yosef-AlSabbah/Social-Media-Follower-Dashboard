@@ -11,7 +11,7 @@ export function Header() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div className="w-40 h-15 bg-gradient-hero rounded-2xl flex items-center justify-center shadow-glow-accent smooth-transition hover:scale-110 hover:shadow-glow-intense p-2">
-            <img src={logoImage} alt="Luqta Logo" className="w-full h-full object-contain" />
+            <img src={logoImage} alt="Company Logo" className="w-full h-full object-contain" />
           </div>
           <div>
             <h1 className="text-3xl font-bold text-foreground bg-gradient-to-r from-foreground to-accent bg-clip-text">

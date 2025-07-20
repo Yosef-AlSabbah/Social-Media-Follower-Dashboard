@@ -14,7 +14,7 @@ from django.conf import settings
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings.production")
 
 # Create the Celery application
-app = Celery("rawad_al_furas")
+app = Celery("social_follower_dashboard")
 
 # Using a string here means the worker doesn't have to serialize
 # the configuration object to child processes.
@@ -22,6 +22,9 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 
 # Load task modules from all registered Django apps.
 app.autodiscover_tasks()
+
+# Explicitly include tasks from subfolders that autodiscover might miss
+app.autodiscover_tasks(['metrics.tasks'])
 
 # Task routing configuration
 app.conf.task_routes = {
@@ -43,6 +46,15 @@ app.conf.update(
     worker_prefetch_multiplier=4,
     worker_max_tasks_per_child=1000,
 )
+
+# The beat_schedule is now managed via the Django admin interface (Periodic Tasks)
+# app.conf.beat_schedule = {
+#     "execute-all-metrics-tasks-every-30-minutes": {
+#         "task": "metrics.tasks.tasks.execute_all_metrics_tasks",
+#         "schedule": crontab(minute="*/30"),  # Runs every 30 minutes
+#         "options": {"expires": 15 * 60, "retry": False},
+#     },
+# }
 
 
 @app.task(bind=True)

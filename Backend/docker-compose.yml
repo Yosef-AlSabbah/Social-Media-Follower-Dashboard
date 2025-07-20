@@ -1,107 +1,113 @@
-version: '3.8'
-
 services:
-  rawad_database:
+  db:
     image: postgres:17-alpine
-    container_name: rawad_database
-    environment:
-      POSTGRES_DB: rawad_db
-      POSTGRES_USER: rawad_user
-      POSTGRES_PASSWORD: rawad_password_2025
+    container_name: backend_db
     volumes:
-      - rawad_postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=${POSTGRES_NAME:-follower_dashboard}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
     networks:
-      - rawad_network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U rawad_user -d rawad_db"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      - backend-network
 
-  rawad_redis:
+  redis:
     image: redis:8.0-alpine
-    container_name: rawad_redis
-    command: redis-server --requirepass rawad_redis_password_2025
-    volumes:
-      - rawad_redis_data:/data
-    ports:
-      - "6379:6379"
+    container_name: backend_redis
+    command: redis-server --requirepass ${REDIS_PASSWORD:-rawad_redis_password_2025}
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-rawad_redis_password_2025}
     networks:
-      - rawad_network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      - backend-network
 
-  rawad_backend:
+  backend:
     build:
       context: .
-      dockerfile: Dockerfile
-    container_name: rawad_backend
-    environment:
-      - DJANGO_SETTINGS_MODULE=core.settings.production
+      dockerfile: Dockerfile.dev
+    container_name: backend_app
+    command: sh -c "
+                    uv run manage.py migrate --noinput &&
+                    uv run manage.py populate_fetch_scripts &&
+                    uv run manage.py runserver 0.0.0.0:8000
+                   "
     volumes:
-      - ./media:/app/media
-      - ./staticfiles:/app/staticfiles
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
+      - DEBUG=${DEBUG:-True}
+      - POSTGRES_NAME=${POSTGRES_NAME:-follower_dashboard}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_HOST=db
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-rawad_redis_password_2025}
     depends_on:
-      rawad_database:
-        condition: service_healthy
-      rawad_redis:
-        condition: service_healthy
+      - db
+      - redis
     networks:
-      - rawad_network
-    restart: unless-stopped
-    expose:
-      - "8000"
+      - backend-network
 
-  rawad_celery_worker:
+  celery_worker:
     build:
       context: .
-      dockerfile: Dockerfile
-    container_name: rawad_celery_worker
-    command: celery -A core worker --loglevel=info --concurrency=4
+      dockerfile: Dockerfile.dev
+    container_name: backend_celery_worker
+    command: sh -c "
+                    mkdir -p /app/logs &&
+                    chmod 755 /app/logs &&
+                    uv run celery -A core worker --loglevel=info
+                   "
+    volumes:
+      - .:/app
     environment:
-      - DJANGO_SETTINGS_MODULE=core.settings.production
-    volumes:
-      - ./media:/app/media
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
+      - DEBUG=${DEBUG:-True}
+      - POSTGRES_NAME=${POSTGRES_NAME:-follower_dashboard}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_HOST=db
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-rawad_redis_password_2025}
     depends_on:
-      rawad_database:
-        condition: service_healthy
-      rawad_redis:
-        condition: service_healthy
+      - db
+      - redis
     networks:
-      - rawad_network
-    restart: unless-stopped
+      - backend-network
 
-  rawad_nginx:
-    image: nginx:1.27-alpine
-    container_name: rawad_nginx
-    ports:
-      - "80:80"
-      - "443:443"
+  celery_beat:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: backend_celery_beat
+    command: sh -c "
+                    mkdir -p /app/logs &&
+                    chmod 755 /app/logs &&
+                    uv run celery -A core beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+                   "
     volumes:
-      - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./config/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./staticfiles:/app/staticfiles:ro
-      - ./media:/app/media:ro
-      - ./config/ssl:/etc/nginx/ssl:ro
+      - .:/app
+    environment:
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
+      - DEBUG=${DEBUG:-True}
+      - POSTGRES_NAME=${POSTGRES_NAME:-follower_dashboard}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_HOST=db
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-rawad_redis_password_2025}
     depends_on:
-      - rawad_backend
+      - db
+      - redis
+      - celery_worker
     networks:
-      - rawad_network
-    restart: unless-stopped
+      - backend-network
 
 volumes:
-  rawad_postgres_data:
-    driver: local
-  rawad_redis_data:
-    driver: local
+  postgres_data:
+  venv_data: {}
 
 networks:
-  rawad_network:
+  backend-network:
     driver: bridge

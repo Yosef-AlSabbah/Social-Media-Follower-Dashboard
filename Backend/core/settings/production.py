@@ -36,12 +36,12 @@ CSRF_COOKIE_HTTPONLY = True
 
 # Database Optimization for Production
 DATABASES["default"]["CONN_MAX_AGE"] = 600
-DATABASES["default"]["OPTIONS"].update(
-    {
-        "connect_timeout": 10,
-        "options": "-c default_transaction_isolation=read_committed",
-    }
-)
+# DATABASES["default"]["OPTIONS"].update(
+#     {
+#         "connect_timeout": 10,
+#         "options": "-c default_transaction_isolation=read_committed",
+#     }
+# )
 
 # Disable Debug Toolbar in Production
 if "debug_toolbar" in INSTALLED_APPS:
@@ -55,7 +55,7 @@ CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
     "https://rawad.com",
     "https://www.rawad.com",
-    "https://app.rawad.com",
+    "https://app.sfd.com",
 ]
 
 # Email Configuration for Production

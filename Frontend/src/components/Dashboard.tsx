@@ -7,7 +7,7 @@ import { LoadingOverlay } from './LoadingOverlay'
 import { usePlatformData, useAnalyticsSummary, useGrowthTrends } from '@/hooks/use-api-data'
 import { MockApiService } from '@/lib/mock-api'
 
-// Icon mapping for platforms
+// Icon mapping for platforms - using lowercase platform names
 const platformIcons: Record<string, LucideIcon> = {
   facebook: Facebook,
   twitter: Twitter,
@@ -37,10 +37,10 @@ export function Dashboard() {
     error: trendsError
   } = useGrowthTrends()
 
-  // Map platforms with their icons
+  // Map platforms with their icons - using platform name instead of id
   const platformsWithIcons = platforms?.map(platform => ({
     ...platform,
-    icon: platformIcons[platform.id] || Facebook
+    icon: platformIcons[platform.name.toLowerCase()] || Facebook
   })) || []
 
   // Check if any data is currently being loaded/updated
@@ -79,9 +79,9 @@ export function Dashboard() {
         <Header />
         
         <AnalyticsSummary
-          totalFollowers={analyticsData?.totalFollowers || 0}
-          topPlatform={analyticsData?.topPlatform || 'غير محدد'}
-          dailyGrowth={analyticsData?.dailyGrowth || 0}
+          totalFollowers={analyticsData?.total_followers || 0}
+          topPlatform={analyticsData?.top_platform?.name_ar || 'غير محدد'}
+          dailyGrowth={analyticsData?.daily_growth || 0}
           isLoading={analyticsLoading}
         />
 
@@ -107,9 +107,9 @@ export function Dashboard() {
               platformsWithIcons.map((platform) => (
                 <PlatformCard
                   key={platform.id}
-                  platform={platform.name}
+                  platform={platform.name_ar}
                   followers={platform.followers}
-                  delta={platform.growth}
+                  delta={platform.delta}
                   icon={platform.icon}
                   color={platform.color}
                   platformId={platform.id}
@@ -133,9 +133,28 @@ export function Dashboard() {
               ))
             ) : (
               platformsWithIcons.map((platform, index) => {
-                // Use mock chart data for each platform
-                const chartData = MockApiService.generateChartDataForPlatform(platform.id);
-                
+                // Find real growth trend data for this platform
+                const platformTrendData = growthTrends?.find(trend => trend.platform_id === platform.id);
+                let chartData = platformTrendData?.data || [];
+
+                // Fallback to mock data if no real data is available
+                if (!chartData || chartData.length === 0) {
+                  console.warn(`⚠️ No growth data found for ${platform.name}, using mock data`);
+                  chartData = MockApiService.generateChartDataForPlatform(platform.id);
+                }
+
+                // Enhanced debug logging for all platforms to see what's happening
+                console.log(`📊 Platform Debug - ${platform.name}:`, {
+                  platformId: platform.id,
+                  platformName: platform.name,
+                  platformNameLower: platform.name.toLowerCase(),
+                  foundTrendData: !!platformTrendData,
+                  chartDataLength: chartData.length,
+                  chartData: chartData,
+                  allGrowthTrendsIds: growthTrends?.map(t => t.platform_id) || [],
+                  usingMockData: !platformTrendData?.data?.length
+                });
+
                 const variants = ['accent', 'secondary', 'primary'] as const;
                 const variant = variants[index % 3];
                 return (
@@ -143,7 +162,7 @@ export function Dashboard() {
                     key={platform.id}
                     data={chartData}
                     variant={variant}
-                    title={`نمو المتابعين - ${platform.name}`}
+                    title={`نمو المتابعين - ${platform.name_ar}`}
                   />
                 );
               })

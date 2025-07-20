@@ -72,43 +72,32 @@ Company logo inspired colors with glassmorphism and glow effects
     --transition-elastic: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
 
-  .light {
-    /* Light mode with enhanced glassmorphism */
-    --background: 210 25% 98%;
-    --background-secondary: 210 20% 95%;
-    --foreground: 220 15% 15%;
+  /* Arabic text handling - Fix inverted text */
+  body {
+    direction: rtl;
+  }
 
-    --card: 210 25% 99%;
-    --card-foreground: 220 15% 15%;
-    --card-border: 210 20% 88%;
+  /* Proper Arabic text direction */
+  .arabic-text,
+  .platform-name,
+  .arabic-content {
+    direction: rtl !important;
+    unicode-bidi: normal !important;
+    text-align: right;
+    font-feature-settings: "liga" 1, "kern" 1;
+    text-rendering: optimizeLegibility;
+  }
 
-    --primary: 220 80% 25%;
-    --primary-glow: 220 80% 35%;
+  /* Numbers should remain LTR */
+  .ltr-numbers {
+    direction: ltr !important;
+    unicode-bidi: normal !important;
+    display: inline-block;
+  }
 
-    --accent: 140 85% 40%;
-    --accent-glow: 140 85% 50%;
-
-    --secondary: 200 85% 50%;
-    --secondary-foreground: 0 0% 98%;
-
-    --muted: 210 15% 92%;
-    --muted-foreground: 220 10% 45%;
-
-    --border: 210 20% 85%;
-    --input: 210 20% 95%;
-
-    --glass-bg: 210 25% 99%;
-    --glass-border: 210 20% 88%;
-    --glass-shadow: 210 20% 85%;
-
-    --gradient-glass: linear-gradient(135deg, hsla(210, 25%, 99%, 0.9), hsla(210, 20%, 95%, 0.7));
-    --gradient-hero: linear-gradient(135deg, hsla(220, 80%, 25%, 0.05), hsla(140, 85%, 40%, 0.05));
-
-    --glow-primary: 0 0 35px hsl(var(--primary-glow) / 0.4);
-    --glow-accent: 0 0 35px hsl(var(--accent-glow) / 0.4);
-    --glow-secondary: 0 0 35px hsl(var(--secondary) / 0.4);
-    --glow-subtle: 0 0 45px hsl(var(--primary) / 0.12);
-    --glow-intense: 0 0 55px hsl(var(--accent) / 0.25);
+  /* Fix for top platform name - apply direction revert */
+  .top-platform-name {
+    direction: revert !important;
   }
 }
 
@@ -154,9 +143,9 @@ Company logo inspired colors with glassmorphism and glow effects
 @layer components {
   /* Enhanced glassmorphism card component */
   .glass-card {
-    @apply relative overflow-hidden rounded-3xl border border-card-border/30 backdrop-blur-xl cursor-pointer;
-    background: var(--gradient-glass);
-    box-shadow: var(--glow-subtle), 
+    @apply relative overflow-hidden rounded-3xl border border-card-border/20 backdrop-blur-xl cursor-pointer;
+    background: linear-gradient(135deg, hsl(var(--card) / 0.15), hsl(var(--card) / 0.25));
+    box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.25), 
                 0 8px 32px rgba(0, 0, 0, 0.12),
                 inset 0 1px 0 rgba(255, 255, 255, 0.1);
     transition: var(--transition-smooth);
