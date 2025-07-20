@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: fullstack_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=${POSTGRES_NAME:-follower_dashboard}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+    networks:
+      - fullstack-network
+
+  redis:
+    image: redis:8.0-alpine
+    container_name: fullstack_redis
+    command: redis-server --requirepass ${REDIS_PASSWORD:-rawad_redis_password_2025}
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-rawad_redis_password_2025}
+    networks:
+      - fullstack-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fullstack_app
+    ports:
+      - "3000:3000"  # Frontend port (main access point)
+      - "8000:8000"  # Backend API port
+    environment:
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
+      - DEBUG=${DEBUG:-True}
+      - POSTGRES_NAME=${POSTGRES_NAME:-follower_dashboard}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_HOST=db
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-rawad_redis_password_2025}
+      - NODE_ENV=development
+    depends_on:
+      - db
+      - redis
+    networks:
+      - fullstack-network
+    volumes:
+      - ./Backend:/app/Backend
+      - ./Frontend:/app/Frontend
+      - /app/Backend/staticfiles
+      - /app/Backend/media
+      - /app/Backend/logs
+      - /app/Frontend/node_modules
+
+volumes:
+  postgres_data:
+
+networks:
+  fullstack-network:
+    driver: bridge
